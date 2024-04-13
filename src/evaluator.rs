@@ -1,0 +1,152 @@
+use rand::{rngs::SmallRng, Rng};
+use std::io::Write;
+use std::{
+    fs::{create_dir_all, File},
+    hint::black_box,
+};
+use sux::bits::BitVec;
+
+fn fastrange(rng: &mut SmallRng, range: u64) -> u64 {
+    ((rng.gen::<u64>() as u128).wrapping_mul(range as u128) >> 64) as u64
+}
+
+pub trait Evaluate {
+    /// Create a new instance of the struct that is being evaluated.
+    fn new(data: Vec<usize>, len: usize) -> Self;
+    /// Call the function that is being benchmarked.
+    fn benched_fn(&self, input: usize) -> usize;
+    /// Return the length in bits of the underlying bit vector.
+    fn len(&self) -> usize;
+    /// Return the memory size of the struct in bytes.
+    fn mem_size(&self) -> usize;
+}
+
+pub struct Evaluator<X>
+where
+    X: Evaluate,
+{
+    rng: SmallRng,
+    phantom_x: std::marker::PhantomData<X>,
+}
+
+impl<X> Evaluator<X>
+where
+    X: Evaluate,
+{
+    pub fn new(rng: SmallRng) -> Self {
+        Self {
+            rng,
+            phantom_x: std::marker::PhantomData,
+        }
+    }
+
+    pub fn bench(
+        &mut self,
+        bench_name: &str,
+        lens: &[u64],
+        densities: &[f64],
+        uniform: bool,
+        repetitions: usize,
+        iterations: usize,
+    ) {
+        create_dir_all("target/results").unwrap();
+        let mut file = File::create(format!("target/results/{}.csv", bench_name)).unwrap();
+        for len in lens.iter().copied() {
+            for density in densities.iter().copied() {
+                let time = self.bench_single(len, density, uniform, repetitions, iterations);
+                let mem_cost = {
+                    let (_, _, data) = self.create_bitvec(len, density, uniform);
+                    let val_struct = X::new(data, len as usize);
+                    self.mem_cost(&val_struct)
+                };
+                writeln!(file, "{}, {}, {} {}", len, density, time, mem_cost).unwrap();
+            }
+        }
+    }
+
+    pub fn mem_cost(&self, val_struct: &X) -> f64 {
+        (((val_struct.mem_size() * 8 - val_struct.len()) * 100) as f64) / (val_struct.len() as f64)
+    }
+
+    pub fn bench_single(
+        &mut self,
+        len: u64,
+        density: f64,
+        uniform: bool,
+        repetitions: usize,
+        iterations: usize,
+    ) -> f64 {
+        let mut time = 0f64;
+        for _ in 0..repetitions {
+            let (num_ones_first_half, num_ones_second_half, data) =
+                self.create_bitvec(len, density, uniform);
+            let val_struct = X::new(data, len as usize);
+
+            let mut u = 0;
+            let begin = std::time::Instant::now();
+            for _ in 0..iterations {
+                u ^= if u & 1 != 0 {
+                    val_struct.benched_fn(
+                        (num_ones_first_half + fastrange(&mut self.rng, num_ones_second_half))
+                            as usize,
+                    )
+                } else {
+                    val_struct.benched_fn(fastrange(&mut self.rng, num_ones_first_half) as usize)
+                };
+            }
+            let elapsed = begin.elapsed().as_nanos();
+            black_box(u);
+
+            time += elapsed as f64;
+        }
+        time / (repetitions * iterations) as f64
+    }
+
+    pub fn create_bitvec(
+        &mut self,
+        len: u64,
+        density: f64,
+        uniform: bool,
+    ) -> (u64, u64, Vec<usize>) {
+        let (density0, density1) = if uniform {
+            (density, density)
+        } else {
+            (density * 0.01, density * 0.99)
+        };
+
+        let len1;
+        let len2;
+        if len % 2 == 0 {
+            len1 = len / 2;
+            len2 = len / 2;
+        } else {
+            len1 = len / 2 + 1;
+            len2 = len / 2;
+        }
+
+        let first_half = loop {
+            let b = (0..len1)
+                .map(|_| self.rng.gen_bool(density0))
+                .collect::<BitVec>();
+            if b.count_ones() > 0 {
+                break b;
+            }
+        };
+        let second_half = (0..len2)
+            .map(|_| self.rng.gen_bool(density1))
+            .collect::<BitVec>();
+        let num_ones_second_half = second_half.count_ones() as u64;
+        let num_ones_first_half = first_half.count_ones() as u64;
+
+        let bits = first_half
+            .into_iter()
+            .chain(second_half.into_iter())
+            .collect::<BitVec>();
+
+        (
+            num_ones_first_half,
+            num_ones_second_half,
+            bits.into_raw_parts().0,
+        )
+    }
+}

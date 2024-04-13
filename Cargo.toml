@@ -1,0 +1,16 @@
+[package]
+name = "valcurt"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+rand = {version="0.8.5", features=["small_rng"]}
+mem_dbg = "0.1"
+sdsl = "0.3.1"
+succinct = "0.5.2"
+cseq = "0.1.2"
+bitm = "0.4.1"
+sucds = "0.8.1"
+sux = {git = "https://github.com/vigna/sux-rs", branch="broad-builder"}
