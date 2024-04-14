@@ -2,6 +2,16 @@ use rand::{rngs::SmallRng, SeedableRng};
 use valcurt::evaluator::Evaluator;
 
 fn main() {
+    if let Some(core_ids) = core_affinity::get_core_ids() {
+        // Not core 0. Anything goes.
+        let core_id = core_ids[1];
+        if !core_affinity::set_for_current(core_id) {
+            eprintln!("Cannot pin thread to core {:?}", core_id);
+        }
+    } else {
+        eprintln!("Cannot retrieve core ids");
+    }
+
     let rng = SmallRng::seed_from_u64(0);
     let repetitions = 10;
     let lens = vec![1_000_000_000];
