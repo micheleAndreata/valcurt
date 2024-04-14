@@ -51,16 +51,19 @@ where
     ) {
         create_dir_all("target/results").unwrap();
         let mut file = File::create(format!("target/results/{}.csv", bench_name)).unwrap();
-        for len in lens.iter().copied() {
-            for density in densities.iter().copied() {
-                let time = self.bench_single(len, density, uniform, repetitions, iterations);
-                let mem_cost = {
-                    let (_, _, data) = self.create_bitvec(len, density, uniform);
-                    let val_struct = X::new(data, len as usize);
-                    self.mem_cost(&val_struct)
-                };
-                writeln!(file, "{}, {}, {} {}", len, density, time, mem_cost).unwrap();
-            }
+        let iter: Vec<_> = lens
+            .into_iter()
+            .copied()
+            .flat_map(|x| densities.into_iter().copied().clone().map(move |y| (x, y)))
+            .collect();
+        for (len, density) in tqdm::tqdm(iter) {
+            let time = self.bench_single(len, density, uniform, repetitions, iterations);
+            let mem_cost = {
+                let (_, _, data) = self.create_bitvec(len, density, uniform);
+                let val_struct = X::new(data, len as usize);
+                self.mem_cost(&val_struct)
+            };
+            writeln!(file, "{}, {}, {} {}", len, density, time, mem_cost).unwrap();
         }
     }
 
