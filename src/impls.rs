@@ -1,6 +1,5 @@
 use crate::evaluator::Evaluate;
 use mem_dbg::{MemSize, SizeFlags};
-use succinct::BitVec;
 
 impl Evaluate for sux::rank_sel::SimpleSelect {
     fn new(data: Vec<usize>, len: usize) -> Self {
@@ -79,49 +78,5 @@ impl Evaluate for sucds::bit_vectors::rank9sel::Rank9Sel {
 
     fn mem_size(&self) -> usize {
         sucds::Serializable::size_in_bytes(self)
-    }
-}
-
-impl Evaluate for succinct::BinSearchSelect<succinct::rank::Rank9<succinct::BitVector<u64>>> {
-    fn new(data: Vec<usize>, len: usize) -> Self {
-        let bv = unsafe { sux::bits::BitVec::from_raw_parts(data, len) };
-        let mut bitvec = succinct::BitVector::<u64>::new();
-        for b in bv.into_iter() {
-            <succinct::BitVector<u64> as succinct::BitVecPush>::push_bit(&mut bitvec, b);
-        }
-        Self::new(succinct::rank::Rank9::new(bitvec))
-    }
-
-    fn benched_fn(&self, input: usize) -> usize {
-        succinct::Select1Support::select1(self, input as u64).unwrap() as usize
-    }
-
-    fn len(&self) -> usize {
-        self.inner().inner().bit_len() as usize
-    }
-
-    fn mem_size(&self) -> usize {
-        succinct::SpaceUsage::total_bytes(self)
-    }
-}
-
-impl Evaluate for vers_vecs::RsVec {
-    fn new(data: Vec<usize>, len: usize) -> Self {
-        let bv = unsafe { sux::bits::BitVec::from_raw_parts(data, len) };
-        let bitvec =
-            vers_vecs::BitVec::from_bits(&bv.into_iter().map(|b| b as u8).collect::<Vec<u8>>());
-        Self::from_bit_vec(bitvec)
-    }
-
-    fn benched_fn(&self, input: usize) -> usize {
-        self.select1(input)
-    }
-
-    fn len(&self) -> usize {
-        self.len()
-    }
-
-    fn mem_size(&self) -> usize {
-        todo!()
     }
 }

@@ -15,11 +15,3 @@ succinct = "0.5.2"
 bitm = "0.4.1"
 sucds = "0.8.1"
 sux = {git = "https://github.com/vigna/sux-rs", branch="broad-builder"}
-
-[profile.release] # Used for the examples
-opt-level = 3             # like --release
-lto = "fat"               # Full LTO
-overflow-checks = false   # Disable integer overflow checks.
-debug = true              # Include debug info.
-debug-assertions = false  # Enables debug assertions.
-codegen-units=1           # slower compile times, but maybe better perf

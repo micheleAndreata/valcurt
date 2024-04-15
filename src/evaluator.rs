@@ -63,7 +63,7 @@ where
                 let val_struct = X::new(data, len as usize);
                 self.mem_cost(&val_struct)
             };
-            writeln!(file, "{}, {}, {} {}", len, density, time, mem_cost).unwrap();
+            writeln!(file, "{}, {}, {}, {}", len, density, time, mem_cost).unwrap();
         }
     }
 
@@ -151,5 +151,48 @@ where
             num_ones_second_half,
             bits.into_raw_parts().0,
         )
+    }
+
+    pub fn validate_select(&mut self) {
+        print!("Validating select function... ");
+        let lens = [1 << 18, 1 << 19, 1 << 20, 1 << 25];
+        std::io::stdout().flush().unwrap();
+        for len in lens {
+            for num_ones in [1, 2, 4, 8, 16, 32, 64, 128, 256] {
+                let bits = (0..len)
+                    .map(|i| i % (len / num_ones) == 0)
+                    .collect::<BitVec>();
+
+                let data = bits.into_raw_parts().0;
+
+                let val_struct = X::new(data, len);
+                assert_eq!(val_struct.len(), len);
+                for i in 0..num_ones {
+                    assert_eq!(val_struct.benched_fn(i), i * (len / num_ones));
+                }
+            }
+        }
+
+        for len in lens {
+            let (num_ones_first_half, num_ones_second_half, data) =
+                self.create_bitvec(len as u64, 0.5, false);
+
+            let bits = unsafe { BitVec::from_raw_parts(data.clone(), len) };
+
+            let ones = (num_ones_first_half + num_ones_second_half) as usize;
+            let mut pos = Vec::with_capacity(ones);
+            for i in 0..(len as usize) {
+                if bits[i] {
+                    pos.push(i);
+                }
+            }
+
+            let val_struct = X::new(data, len);
+
+            for i in 0..(ones) {
+                assert!(val_struct.benched_fn(i) == pos[i]);
+            }
+        }
+        println!("done");
     }
 }

@@ -30,41 +30,16 @@ fn main() {
     let densities = vec![0.25, 0.5, 0.75];
     let iterations = 70_000_000;
 
-    let mut simple_eval: Evaluator<sux::rank_sel::SimpleSelect> = Evaluator::new(rng.clone());
-
     let mut rank9sel_eval: Evaluator<sux::rank_sel::Rank9Sel> = Evaluator::new(rng.clone());
-
-    let mut rankselect101111_eval: Evaluator<bitm::RankSelect101111> = Evaluator::new(rng.clone());
 
     let mut sucds_rank9sel_eval: Evaluator<sucds::bit_vectors::rank9sel::Rank9Sel> =
         Evaluator::new(rng.clone());
 
-    let mut succinct_sel_eval: Evaluator<
-        succinct::BinSearchSelect<succinct::rank::Rank9<succinct::BitVector<u64>>>,
-    > = Evaluator::new(rng.clone());
-
-    println!("SimpleSelect...");
-    simple_eval.bench(
-        "SimpleSelect",
-        &lens,
-        &densities,
-        true,
-        repetitions,
-        iterations,
-    );
+    rank9sel_eval.validate_select();
+    sucds_rank9sel_eval.validate_select();
 
     println!("Rank9Sel...");
     rank9sel_eval.bench("Rank9Sel", &lens, &densities, true, repetitions, iterations);
-
-    println!("RankSelect101111");
-    rankselect101111_eval.bench(
-        "RankSelect101111",
-        &lens,
-        &densities,
-        true,
-        repetitions,
-        iterations,
-    );
 
     println!("Sucds Rank9Sel...");
     sucds_rank9sel_eval.bench(
@@ -72,57 +47,6 @@ fn main() {
         &lens,
         &densities,
         true,
-        repetitions,
-        iterations,
-    );
-
-    println!("Succinct BinSearchSelect Rank9...");
-    succinct_sel_eval.bench(
-        "SuccinctBinSearchSelectRank9",
-        &lens,
-        &densities,
-        true,
-        repetitions,
-        iterations,
-    );
-
-    println!("SimpleSelect non uniform...");
-    simple_eval.bench(
-        "SimpleSelect_non_uniform",
-        &lens,
-        &densities,
-        false,
-        repetitions,
-        iterations,
-    );
-    println!("Rank9Sel non uniform...");
-    rank9sel_eval.bench("Rank9Sel", &lens, &densities, true, repetitions, iterations);
-    println!("RankSelect101111");
-    rankselect101111_eval.bench(
-        "RankSelect101111_non_uniform",
-        &lens,
-        &densities,
-        false,
-        repetitions,
-        iterations,
-    );
-
-    println!("Sucds Rank9Sel non uniform...");
-    sucds_rank9sel_eval.bench(
-        "SucdsRank9Sel_non_uniform",
-        &lens,
-        &densities,
-        false,
-        repetitions,
-        iterations,
-    );
-
-    println!("Succinct BinSearchSelect Rank9 non uniform...");
-    succinct_sel_eval.bench(
-        "SuccinctBinSearchSelectRank9_non_uniform",
-        &lens,
-        &densities,
-        false,
         repetitions,
         iterations,
     );
