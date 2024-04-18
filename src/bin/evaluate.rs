@@ -30,13 +30,31 @@ fn main() {
     let densities = vec![0.25, 0.5, 0.75];
     let iterations = 70_000_000;
 
+    let mut simple_eval: Evaluator<sux::rank_sel::SimpleSelect> = Evaluator::new(rng.clone());
+
     let mut rank9sel_eval: Evaluator<sux::rank_sel::Rank9Sel> = Evaluator::new(rng.clone());
 
     let mut sucds_rank9sel_eval: Evaluator<sucds::bit_vectors::rank9sel::Rank9Sel> =
         Evaluator::new(rng.clone());
 
+    let mut bitm_ranksel101111_eval: Evaluator<
+        bitm::RankSelect101111<bitm::CombinedSampling, bitm::CombinedSampling, Box<[u64]>>,
+    > = Evaluator::new(rng.clone());
+
+    simple_eval.validate_select();
     rank9sel_eval.validate_select();
     sucds_rank9sel_eval.validate_select();
+    bitm_ranksel101111_eval.validate_select();
+
+    println!("SimpleSelect...");
+    simple_eval.bench(
+        "SimpleSelect",
+        &lens,
+        &densities,
+        true,
+        repetitions,
+        iterations,
+    );
 
     println!("Rank9Sel...");
     rank9sel_eval.bench("Rank9Sel", &lens, &densities, true, repetitions, iterations);
@@ -44,6 +62,16 @@ fn main() {
     println!("Sucds Rank9Sel...");
     sucds_rank9sel_eval.bench(
         "SucdsRank9Sel",
+        &lens,
+        &densities,
+        true,
+        repetitions,
+        iterations,
+    );
+
+    println!("BitM RankSelect101111...");
+    bitm_ranksel101111_eval.bench(
+        "BitMRankSelect101111",
         &lens,
         &densities,
         true,

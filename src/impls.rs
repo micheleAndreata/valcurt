@@ -41,14 +41,19 @@ impl Evaluate for sux::rank_sel::Rank9Sel {
     }
 }
 
-impl Evaluate for bitm::RankSelect101111 {
+impl Evaluate
+    for bitm::RankSelect101111<bitm::CombinedSampling, bitm::CombinedSampling, Box<[u64]>>
+{
     fn new(data: Vec<usize>, len: usize) -> Self {
         let _ = len;
-        bitm::RankSelect101111::build(data.iter().map(|e| *e as u64).collect()).0
+        bitm::RankSelect101111::<bitm::CombinedSampling, bitm::CombinedSampling, _>::build(
+            data.iter().map(|e| *e as u64).collect(),
+        )
+        .0
     }
 
     fn benched_fn(&self, input: usize) -> usize {
-        unsafe { <bitm::RankSelect101111 as bitm::Select>::select_unchecked(&self, input) }
+        unsafe { <bitm::RankSelect101111<_, _, _> as bitm::Select>::select_unchecked(&self, input) }
     }
 
     fn len(&self) -> usize {

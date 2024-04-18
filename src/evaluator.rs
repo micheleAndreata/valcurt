@@ -12,6 +12,9 @@ fn fastrange(rng: &mut SmallRng, range: u64) -> u64 {
 
 pub trait Evaluate {
     /// Create a new instance of the struct that is being evaluated.
+    /// The struct should be initialized with the given data and length.
+    /// The length is the number of bits in the bit vector.
+    /// The data is a vector of usize values that represent the bits in the bit vector.
     fn new(data: Vec<usize>, len: usize) -> Self;
     /// Call the function that is being benchmarked.
     fn benched_fn(&self, input: usize) -> usize;
@@ -40,6 +43,8 @@ where
         }
     }
 
+    /// Benchmark the struct with the given parameters.
+    /// The benchmark will be run for each combination of lens and densities.
     pub fn bench(
         &mut self,
         bench_name: &str,
@@ -155,8 +160,8 @@ where
 
     pub fn validate_select(&mut self) {
         print!("Validating select function... ");
-        let lens = [1 << 18, 1 << 19, 1 << 20, 1 << 25];
         std::io::stdout().flush().unwrap();
+        let lens = [1 << 18, 1 << 19, 1 << 20, 1 << 25];
         for len in lens {
             for num_ones in [1, 2, 4, 8, 16, 32, 64, 128, 256] {
                 let bits = (0..len)
