@@ -55,6 +55,63 @@ def compare_benches(benches, compare_name):
     plt.close(fig)
 
 
+def is_pareto_efficient(costs):
+    """
+    Find the pareto-efficient points
+    :param costs: An (n_points, n_costs) array
+    :return: A (n_points, ) boolean array, indicating whether each point is Pareto efficient
+    """
+    is_efficient = np.ones(costs.shape[0], dtype=bool)
+    for i, c in enumerate(costs):
+        is_efficient[i] = np.all(np.any(costs[:i] <= c, axis=1)) and np.all(
+            np.any(costs[i+1:] <= c, axis=1))
+    return is_efficient
+
+
+def draw_pareto_front(benches, compare_name):
+    fig, ax = plt.subplots(1, 1, constrained_layout=True)
+    ax.set_ylabel("memory cost [%]")
+    ax.set_xlabel("time [ns]")
+
+    for i, (bench, bench_name) in enumerate(benches):
+        bench = bench[bench["dense"] == 0.5]
+        pareto = bench[is_pareto_efficient(bench[["time", "mem_cost"]].values)]
+        ax.plot(pareto["time"], pareto["mem_cost"], label=bench_name,
+                color=colors[i], marker="o", markersize=3, linewidth=1.0)
+    ax.grid(True)
+
+    h1, _ = ax.get_legend_handles_labels()
+    fig.legend(handles=h1, loc='upper center', bbox_to_anchor=(
+        0.5, -0.04), fancybox=True, shadow=True, ncol=5)
+
+    plt.draw_all()
+    plt.savefig("./plots/{}.svg".format(compare_name),
+                format="svg", bbox_inches="tight")
+    plt.close(fig)
+
+
+def scatter(benches, plot_name):
+    fig, ax = plt.subplots(1, 1, constrained_layout=True)
+    ax.set_ylabel("memory cost [%]")
+    ax.set_xlabel("time [ns]")
+
+    for i, (bench, bench_name) in enumerate(benches):
+        bench = bench[bench["dense"] == 0.5]
+        bench = bench[bench["size"] == 1073741826]
+        ax.plot(bench["time"], bench["mem_cost"], label=bench_name,
+                color=colors[i], marker="o", markersize=6, linewidth=1.0)
+    ax.grid(True)
+
+    h1, _ = ax.get_legend_handles_labels()
+    fig.legend(handles=h1, loc='upper center', bbox_to_anchor=(
+        0.5, -0.04), fancybox=True, shadow=True, ncol=5)
+
+    plt.draw_all()
+    plt.savefig("./plots/{}.svg".format(plot_name),
+                format="svg", bbox_inches="tight")
+    plt.close(fig)
+
+
 if __name__ == "__main__":
     benches = []
     for file in os.listdir("./target/results"):
@@ -62,3 +119,5 @@ if __name__ == "__main__":
             benches.append(
                 (load_benches(f"./target/results/{file}"), file[:-4]))
     compare_benches(benches, "benches")
+    draw_pareto_front(benches, "pareto")
+    scatter(benches, "scatter")
