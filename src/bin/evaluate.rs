@@ -61,6 +61,8 @@ fn evaluate_rank(lens: &[u64], densities: &[f64], repetitions: usize, iterations
 
     let mut rank9_eval: Evaluator<sux::rank_sel::Rank9> = Evaluator::new(rng.clone());
 
+    let mut rank10_eval: Evaluator<sux::rank_sel::Rank10> = Evaluator::new(rng.clone());
+
     let mut rank11_eval: Evaluator<sux::rank_sel::Rank11> = Evaluator::new(rng.clone());
 
     let mut rank12_eval: Evaluator<sux::rank_sel::Rank12> = Evaluator::new(rng.clone());
@@ -71,9 +73,20 @@ fn evaluate_rank(lens: &[u64], densities: &[f64], repetitions: usize, iterations
 
     println!("Rank9...");
     rank9_eval.bench("Rank9", &lens, &densities, true, repetitions, iterations);
+
+    println!("Rank10...");
+    rank10_eval.bench("Rank10", &lens, &densities, true, repetitions, iterations);
+
+    println!("Rank11...");
     rank11_eval.bench("Rank11", &lens, &densities, true, repetitions, iterations);
+
+    println!("Rank12...");
     rank12_eval.bench("Rank12", &lens, &densities, true, repetitions, iterations);
+
+    println!("Rank16...");
     rank16_eval.bench("Rank16", &lens, &densities, true, repetitions, iterations);
+
+    println!("Rank101111...");
     rank101111_eval.bench(
         "Rank101111",
         &lens,
@@ -115,8 +128,8 @@ fn main() {
         (1 << 26) + 2,
         (1 << 28) + 2,
         (1 << 30) + 2,
-        (1 << 32) + 2,
-        (1 << 34) + 2,
+        // (1 << 32) + 2,
+        // (1 << 34) + 2,
     ];
     let densities = vec![0.25, 0.5, 0.75];
     let repetitions = 10;

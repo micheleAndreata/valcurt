@@ -20,6 +20,25 @@ impl Evaluate for sux::rank_sel::Rank9 {
     }
 }
 
+impl Evaluate for sux::rank_sel::Rank10 {
+    fn new(data: Vec<usize>, len: usize) -> Self {
+        let bitvec = unsafe { sux::bits::BitVec::from_raw_parts(data, len) };
+        Self::new(bitvec)
+    }
+
+    fn benched_fn(&self, input: usize) -> usize {
+        unsafe { <sux::rank_sel::Rank10 as sux::traits::Rank>::rank_unchecked(&self, input) }
+    }
+
+    fn len(&self) -> usize {
+        <sux::rank_sel::Rank10 as sux::traits::BitLength>::len(&self)
+    }
+
+    fn mem_size(&self) -> usize {
+        MemSize::mem_size(self, mem_dbg::SizeFlags::default())
+    }
+}
+
 impl Evaluate for sux::rank_sel::Rank11 {
     fn new(data: Vec<usize>, len: usize) -> Self {
         let bitvec = unsafe { sux::bits::BitVec::from_raw_parts(data, len) };

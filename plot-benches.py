@@ -1,4 +1,4 @@
-
+import math
 from matplotlib.lines import Line2D
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
@@ -6,8 +6,9 @@ import os
 import pandas as pd
 import numpy as np
 
-colors = ['b', 'g', 'r', 'c', 'm']
+colors = ['b', 'g', 'r', 'c', 'm', 'purple', 'gold', 'teal']
 num_of_densities = 3
+markers = np.array(["v", "o", "+", "*", "^"])
 
 
 def load_benches(path):
@@ -63,51 +64,56 @@ def is_pareto_efficient(costs):
     """
     is_efficient = np.ones(costs.shape[0], dtype=bool)
     for i, c in enumerate(costs):
-        is_efficient[i] = np.all(np.any(costs[:i] <= c, axis=1)) and np.all(
-            np.any(costs[i+1:] <= c, axis=1))
+        is_efficient[i] = np.all(np.any(costs[:i] > c, axis=1)) and np.all(
+            np.any(costs[i+1:] > c, axis=1))
     return is_efficient
 
 
 def draw_pareto_front(benches, compare_name):
     fig, ax = plt.subplots(1, 1, constrained_layout=True)
+    fig.set_size_inches(10, 6)
     ax.set_ylabel("memory cost [%]")
     ax.set_xlabel("time [ns]")
 
-    for i, (bench, bench_name) in enumerate(benches):
-        bench = bench[bench["dense"] == 0.5]
-        pareto = bench[is_pareto_efficient(bench[["time", "mem_cost"]].values)]
-        ax.plot(pareto["time"], pareto["mem_cost"], label=bench_name,
-                color=colors[i], marker="o", markersize=3, linewidth=1.0)
-    ax.grid(True)
+    bench_per_len = []
+    lens = benches[0][0]["size"].unique()
+    for l in lens:
+        bench_per_len.append([])
+        for bench, _ in benches:
+            b = bench[bench["dense"] == 0.5]
+            b = b[b["size"] == l]
+            bench_per_len[-1].append(np.ndarray.flatten(
+                b[["time", "mem_cost"]].values))
 
-    h1, _ = ax.get_legend_handles_labels()
-    fig.legend(handles=h1, loc='upper center', bbox_to_anchor=(
+    for i, bench in enumerate(bench_per_len):
+        bench = np.array(bench)
+        pareto = bench[is_pareto_efficient(bench)]
+        pareto = pareto[np.argsort(pareto[:, 0])]
+        ax.plot(pareto[:, 0], pareto[:, 1], label=f"size={lens[i]}",
+                color=colors[i], linewidth=1.0)
+        for j, p in enumerate(bench):
+            if p in pareto:
+                plt.scatter(p[0], p[1], color=colors[i],
+                            marker=markers[j], s=20)
+            else:
+                plt.scatter(p[0], p[1], color=colors[i],
+                            marker=markers[j], s=10)
+
+    handles = []
+
+    for i, l in enumerate(lens):
+        handles.append(mpatches.Patch(
+            color=colors[i], label=f"size=2^{math.floor(math.log2(l))}"))
+
+    for i, bench in enumerate(benches):
+        handles.append(
+            Line2D([0], [0], color='black', marker=markers[i], markersize=5, label=bench[1]))
+
+    fig.legend(handles=handles, loc='upper center', bbox_to_anchor=(
         0.5, -0.04), fancybox=True, shadow=True, ncol=5)
 
     plt.draw_all()
     plt.savefig("./plots/{}.svg".format(compare_name),
-                format="svg", bbox_inches="tight")
-    plt.close(fig)
-
-
-def scatter(benches, plot_name):
-    fig, ax = plt.subplots(1, 1, constrained_layout=True)
-    ax.set_ylabel("memory cost [%]")
-    ax.set_xlabel("time [ns]")
-
-    for i, (bench, bench_name) in enumerate(benches):
-        bench = bench[bench["dense"] == 0.5]
-        bench = bench[bench["size"] == 1073741826]
-        ax.plot(bench["time"], bench["mem_cost"], label=bench_name,
-                color=colors[i], marker="o", markersize=6, linewidth=1.0)
-    ax.grid(True)
-
-    h1, _ = ax.get_legend_handles_labels()
-    fig.legend(handles=h1, loc='upper center', bbox_to_anchor=(
-        0.5, -0.04), fancybox=True, shadow=True, ncol=5)
-
-    plt.draw_all()
-    plt.savefig("./plots/{}.svg".format(plot_name),
                 format="svg", bbox_inches="tight")
     plt.close(fig)
 
@@ -118,6 +124,5 @@ if __name__ == "__main__":
         if file.endswith(".csv"):
             benches.append(
                 (load_benches(f"./target/results/{file}"), file[:-4]))
-    compare_benches(benches, "benches")
-    draw_pareto_front(benches, "pareto")
-    scatter(benches, "scatter")
+    compare_benches(benches, "benches_rank")
+    draw_pareto_front(benches, "pareto_rank")
