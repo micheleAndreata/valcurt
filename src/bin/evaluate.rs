@@ -128,11 +128,11 @@ fn main() {
         (1 << 26) + 2,
         (1 << 28) + 2,
         (1 << 30) + 2,
-        // (1 << 32) + 2,
-        // (1 << 34) + 2,
+        (1 << 32) + 2,
+        (1 << 34) + 2,
     ];
     let densities = vec![0.25, 0.5, 0.75];
-    let repetitions = 10;
+    let repetitions = 11;
     let iterations = 70_000_000;
 
     if evaluation_type == "rank" {

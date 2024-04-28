@@ -62,13 +62,18 @@ where
             .flat_map(|x| densities.into_iter().copied().clone().map(move |y| (x, y)))
             .collect();
         for (len, density) in tqdm::tqdm(iter) {
-            let time = self.bench_single(len, density, uniform, repetitions, iterations);
+            let (mean, median) = self.bench_single(len, density, uniform, repetitions, iterations);
             let mem_cost = {
                 let (_, _, data) = self.create_bitvec(len, density, uniform);
                 let val_struct = X::new(data, len as usize);
                 self.mem_cost(&val_struct)
             };
-            writeln!(file, "{}, {}, {}, {}", len, density, time, mem_cost).unwrap();
+            writeln!(
+                file,
+                "{}, {}, {}, {}, {}",
+                len, density, mean, median, mem_cost
+            )
+            .unwrap();
         }
     }
 
@@ -83,9 +88,9 @@ where
         uniform: bool,
         repetitions: usize,
         iterations: usize,
-    ) -> f64 {
-        let mut time = 0f64;
-        for _ in 0..repetitions {
+    ) -> (f64, f64) {
+        let mut times = vec![0; repetitions];
+        for i in 0..repetitions {
             let (num_ones_first_half, num_ones_second_half, data) =
                 self.create_bitvec(len, density, uniform);
             let val_struct = X::new(data, len as usize);
@@ -105,9 +110,17 @@ where
             let elapsed = begin.elapsed().as_nanos();
             black_box(u);
 
-            time += elapsed as f64;
+            times[i] = elapsed as u64;
         }
-        time / (repetitions * iterations) as f64
+        times.sort();
+        let mean = (times.iter().copied().reduce(|acc, e| acc + e).unwrap() as f64)
+            / (iterations * repetitions) as f64;
+        let median = if repetitions % 2 == 0 {
+            (times[times.len() / 2] + times[times.len() / 2 - 1]) as f64 / (2 * iterations) as f64
+        } else {
+            times[times.len() / 2] as f64 / iterations as f64
+        };
+        (mean, median)
     }
 
     pub fn create_bitvec(

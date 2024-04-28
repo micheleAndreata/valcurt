@@ -8,12 +8,12 @@ import numpy as np
 
 colors = ['b', 'g', 'r', 'c', 'm', 'purple', 'gold', 'teal']
 num_of_densities = 3
-markers = np.array(["v", "o", "+", "*", "^"])
+markers = np.array(["v", "o", "+", "*", "^", "s", "D", "x"])
 
 
 def load_benches(path):
     df = pd.read_csv(path, header=None, names=[
-                     "size", "dense", "time", "mem_cost"])
+                     "size", "dense", "mean_time", "median_time", "mem_cost"])
     return df
 
 
@@ -30,12 +30,12 @@ def compare_benches(benches, compare_name):
 
     for i, (bench, bench_name) in enumerate(benches):
         for d, (name, group) in enumerate(bench.groupby("dense")):
-            ax[0, i].plot(group["size"], group["time"], label=f"density={float(name)*100}%",
+            ax[0, i].plot(group["size"], group["mean_time"], label=f"density={float(name)*100}%",
                           color=colors[d], marker="o", markersize=3, linewidth=1.0)
         ax[0, i].set_title(bench_name)
 
     means = np.sort(np.concatenate(
-        list(map(lambda x: x[0]["time"].unique(), benches)), axis=0))
+        list(map(lambda x: x[0]["mean_time"].unique(), benches)), axis=0))
     ticks = np.logspace(np.log10(means[0]), np.log10(means[-1]), num=6)
     ticks = list(map(lambda x: round(x, 1), ticks))
     for i in range(len(benches)):
@@ -83,7 +83,7 @@ def draw_pareto_front(benches, compare_name):
             b = bench[bench["dense"] == 0.5]
             b = b[b["size"] == l]
             bench_per_len[-1].append(np.ndarray.flatten(
-                b[["time", "mem_cost"]].values))
+                b[["mean_time", "mem_cost"]].values))
 
     for i, bench in enumerate(bench_per_len):
         bench = np.array(bench)
@@ -95,10 +95,10 @@ def draw_pareto_front(benches, compare_name):
             if p in pareto:
                 plt.scatter(p[0], p[1], color=colors[i],
                             marker=markers[j], s=20)
-            else:
-                plt.scatter(p[0], p[1], color=colors[i],
-                            marker=markers[j], s=10)
-
+            # else:
+            #     plt.scatter(p[0], p[1], color=colors[i],
+            #                 marker=markers[j], s=10)
+    ax.grid(True)
     handles = []
 
     for i, l in enumerate(lens):
