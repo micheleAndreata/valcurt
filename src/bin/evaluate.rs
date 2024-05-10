@@ -10,7 +10,7 @@ fn evaluate_select(lens: &[u64], densities: &[f64], repetitions: usize, iteratio
 
     let mut rank9sel_eval: Evaluator<sux::rank_sel::Rank9Sel> = Evaluator::new(rng.clone());
 
-    let mut sucds_rank9sel_eval: Evaluator<sucds::bit_vectors::rank9sel::Rank9Sel> =
+    let mut rank10sel_eval: Evaluator<sux::rank_sel::Rank10Sel<1024, 11>> =
         Evaluator::new(rng.clone());
 
     let mut bitm_ranksel101111_eval: Evaluator<
@@ -19,7 +19,7 @@ fn evaluate_select(lens: &[u64], densities: &[f64], repetitions: usize, iteratio
 
     simple_eval.validate_select();
     rank9sel_eval.validate_select();
-    sucds_rank9sel_eval.validate_select();
+    rank10sel_eval.validate_select();
     bitm_ranksel101111_eval.validate_select();
 
     println!("SimpleSelect...");
@@ -35,9 +35,9 @@ fn evaluate_select(lens: &[u64], densities: &[f64], repetitions: usize, iteratio
     println!("Rank9Sel...");
     rank9sel_eval.bench("Rank9Sel", &lens, &densities, true, repetitions, iterations);
 
-    println!("Sucds Rank9Sel...");
-    sucds_rank9sel_eval.bench(
-        "SucdsRank9Sel",
+    println!("Rank10Sel...");
+    rank10sel_eval.bench(
+        "Rank10Sel",
         &lens,
         &densities,
         true,
@@ -61,7 +61,7 @@ fn evaluate_rank(lens: &[u64], densities: &[f64], repetitions: usize, iterations
 
     let mut rank9_eval: Evaluator<sux::rank_sel::Rank9> = Evaluator::new(rng.clone());
 
-    let mut rank10_eval: Evaluator<sux::rank_sel::Rank10> = Evaluator::new(rng.clone());
+    let mut rank10_eval: Evaluator<sux::rank_sel::Rank10<512>> = Evaluator::new(rng.clone());
 
     let mut rank11_eval: Evaluator<sux::rank_sel::Rank11> = Evaluator::new(rng.clone());
 
@@ -115,11 +115,6 @@ fn main() {
     }
 
     let evaluation_type = &args[1];
-    if evaluation_type != "rank" && evaluation_type != "select" {
-        println!("Invalid argument: '{}'", evaluation_type);
-        println!("Please provide an argument: 'rank' or 'select'");
-        return;
-    }
 
     let lens = vec![
         (1u64 << 20) + 2,
@@ -128,16 +123,23 @@ fn main() {
         (1 << 26) + 2,
         (1 << 28) + 2,
         (1 << 30) + 2,
-        (1 << 32) + 2,
-        (1 << 34) + 2,
+        // (1 << 32) + 2,
+        // (1 << 34) + 2,
     ];
     let densities = vec![0.25, 0.5, 0.75];
     let repetitions = 11;
     let iterations = 70_000_000;
 
-    if evaluation_type == "rank" {
-        evaluate_rank(&lens, &densities, repetitions, iterations);
-    } else if evaluation_type == "select" {
-        evaluate_select(&lens, &densities, repetitions, iterations);
+    match evaluation_type.as_str() {
+        "rank" => evaluate_rank(&lens, &densities, repetitions, iterations),
+        "select" => evaluate_select(&lens, &densities, repetitions, iterations),
+        "both" => {
+            evaluate_select(&lens, &densities, repetitions, iterations);
+            evaluate_rank(&lens, &densities, repetitions, iterations);
+        }
+        _ => {
+            println!("Invalid argument: '{}'", evaluation_type);
+            println!("Please provide an argument: 'rank', 'select' or 'both'");
+        }
     }
 }
