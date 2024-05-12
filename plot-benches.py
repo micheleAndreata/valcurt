@@ -10,6 +10,8 @@ colors = ['b', 'g', 'r', 'c', 'm', 'purple', 'gold', 'teal']
 num_of_densities = 3
 markers = np.array(["v", "o", "+", "*", "^", "s", "D", "x"])
 
+statistic = "median_time"
+
 
 def load_benches(path):
     df = pd.read_csv(path, header=None, names=[
@@ -30,12 +32,12 @@ def compare_benches(benches, compare_name):
 
     for i, (bench, bench_name) in enumerate(benches):
         for d, (name, group) in enumerate(bench.groupby("dense")):
-            ax[0, i].plot(group["size"], group["mean_time"], label=f"density={float(name)*100}%",
+            ax[0, i].plot(group["size"], group[statistic], label=f"density={float(name)*100}%",
                           color=colors[d], marker="o", markersize=3, linewidth=1.0)
         ax[0, i].set_title(bench_name)
 
     means = np.sort(np.concatenate(
-        list(map(lambda x: x[0]["mean_time"].unique(), benches)), axis=0))
+        list(map(lambda x: x[0][statistic].unique(), benches)), axis=0))
     ticks = np.logspace(np.log10(means[0]), np.log10(means[-1]), num=6)
     ticks = list(map(lambda x: round(x, 1), ticks))
     for i in range(len(benches)):
@@ -64,16 +66,16 @@ def compare_benches_same_plot(bench1, bench2, compare_name):
              va='center', rotation='vertical')
 
     for d, (name, group) in enumerate(bench1[0].groupby("dense")):
-        ax.plot(group["size"], group["mean_time"], label=f"density={float(name)*100}%",
+        ax.plot(group["size"], group[statistic], label=f"density={float(name)*100}%",
                 color=colors[d], marker=markers[0], markersize=3, linewidth=1.0, linestyle="-")
 
     for d, (name, group) in enumerate(bench2[0].groupby("dense")):
-        ax.plot(group["size"], group["mean_time"], label=f"density={float(name)*100}%",
+        ax.plot(group["size"], group[statistic], label=f"density={float(name)*100}%",
                 color=colors[d], marker=markers[1], markersize=3, linewidth=1.0, linestyle="--")
 
     means = []
-    means.append(bench1[0]["mean_time"].unique())
-    means.append(bench2[0]["mean_time"].unique())
+    means.append(bench1[0][statistic].unique())
+    means.append(bench2[0][statistic].unique())
 
     means = np.unique(np.concatenate(means), axis=0)
     ticks = np.logspace(np.log10(means[0]), np.log10(means[-1]), num=6)
@@ -134,7 +136,7 @@ def draw_pareto_front(benches, compare_name):
             b = bench[bench["dense"] == 0.5]
             b = b[b["size"] == l]
             bench_per_len[-1].append(np.ndarray.flatten(
-                b[["mean_time", "mem_cost"]].values))
+                b[[statistic, "mem_cost"]].values))
 
     for i, bench in enumerate(bench_per_len):
         bench = np.array(bench)
@@ -175,5 +177,5 @@ if __name__ == "__main__":
         if file.endswith(".csv"):
             benches.append(
                 (load_benches(f"./target/results/{file}"), file[:-4]))
-    compare_benches(benches, "benches_rank")
-    draw_pareto_front(benches, "pareto_rank")
+    compare_benches(benches, "benches")
+    draw_pareto_front(benches, "pareto")
