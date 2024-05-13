@@ -1,24 +1,25 @@
+use bitm::CombinedSampling;
 use criterion::{black_box, measurement::Measurement, BenchmarkGroup, BenchmarkId, Criterion};
 use rand::{rngs::SmallRng, SeedableRng};
-use valcurt::utils::{create_bitvec, fastrange_non_uniform, BenchSelect};
+use valcurt::utils::{create_bitvec, fastrange_non_uniform, save_mem_cost, BenchSelect};
 
-const LENS: [u64; 11] = [
+const LENS: [u64; 6] = [
     1u64 << 20,
     1 << 21,
     1 << 22,
     1 << 23,
     1 << 24,
     1 << 25,
-    1 << 26,
-    1 << 27,
-    1 << 28,
-    1 << 29,
-    1 << 30,
+    // 1 << 26,
+    // 1 << 27,
+    // 1 << 28,
+    // 1 << 29,
+    // 1 << 30,
 ];
 
 const DENSITIES: [f64; 3] = [0.25, 0.5, 0.75];
 
-const REPS: usize = 5;
+const REPS: usize = 1;
 
 fn bench_select<S: BenchSelect, M: Measurement>(
     bench_group: &mut BenchmarkGroup<'_, M>,
@@ -54,14 +55,24 @@ fn bench_select<S: BenchSelect, M: Measurement>(
 }
 
 pub fn bench_simple_select(c: &mut Criterion, uniform: bool) {
-    let mut group = c.benchmark_group("simple_select");
+    let mut name = "simple_select";
+    if !uniform {
+        name = "simple_select_non_uniform";
+    }
+    let mut group = c.benchmark_group(name);
     bench_select::<sux::rank_sel::SimpleSelect, _>(&mut group, &LENS, &DENSITIES, REPS, uniform);
+    save_mem_cost::<sux::rank_sel::SimpleSelect>(name, &LENS, &[0.5], uniform);
     group.finish();
 }
 
 pub fn bench_rank9sel(c: &mut Criterion, uniform: bool) {
-    let mut group = c.benchmark_group("rank9sel");
+    let mut name = "rank9sel";
+    if !uniform {
+        name = "rank9sel_non_uniform";
+    }
+    let mut group = c.benchmark_group(name);
     bench_select::<sux::rank_sel::Rank9Sel, _>(&mut group, &LENS, &DENSITIES, REPS, uniform);
+    save_mem_cost::<sux::rank_sel::Rank9Sel>(name, &LENS, &[0.5], uniform);
     group.finish();
 }
 
@@ -69,17 +80,37 @@ pub fn bench_rank10sel<const UPPER_BLOCK_SIZE: usize, const LOG2_ONES_PER_INVENT
     c: &mut Criterion,
     uniform: bool,
 ) {
-    let mut group = c.benchmark_group("rank10sel");
+    let mut name = format!("rank10sel_{}_{}", UPPER_BLOCK_SIZE, LOG2_ONES_PER_INVENTORY);
+    if !uniform {
+        name.push_str("_non_uniform");
+    }
+    let mut group = c.benchmark_group(&name);
     bench_select::<sux::rank_sel::Rank10Sel<UPPER_BLOCK_SIZE, LOG2_ONES_PER_INVENTORY>, _>(
         &mut group, &LENS, &DENSITIES, REPS, uniform,
+    );
+    save_mem_cost::<sux::rank_sel::Rank10Sel<UPPER_BLOCK_SIZE, LOG2_ONES_PER_INVENTORY>>(
+        &name,
+        &LENS,
+        &[0.5],
+        uniform,
     );
     group.finish();
 }
 
 pub fn bench_cs_poppy(c: &mut Criterion, uniform: bool) {
-    let mut group = c.benchmark_group("cs_poppy");
+    let mut name = "cs_poppy";
+    if !uniform {
+        name = "cs_poppy_non_uniform";
+    }
+    let mut group = c.benchmark_group(name);
     bench_select::<bitm::RankSelect101111<_, _, _>, _>(
         &mut group, &LENS, &DENSITIES, REPS, uniform,
+    );
+    save_mem_cost::<bitm::RankSelect101111<CombinedSampling, CombinedSampling, _>>(
+        name,
+        &LENS,
+        &[0.5],
+        uniform,
     );
     group.finish();
 }

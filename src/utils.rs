@@ -1,5 +1,6 @@
-use rand::{rngs::SmallRng, Rng};
-use std::any::type_name;
+use rand::{rngs::SmallRng, Rng, SeedableRng};
+use std::io::Write;
+use std::{any::type_name, fs::create_dir_all};
 use sux::bits::BitVec;
 
 pub trait Measure {
@@ -48,6 +49,23 @@ pub fn type_of<T>(_: T) -> &'static str {
 pub fn mem_cost(benched_struct: impl Measure) -> f64 {
     (((benched_struct.mem_size() * 8 - benched_struct.len()) * 100) as f64)
         / (benched_struct.len() as f64)
+}
+
+/// Save the memory cost of a struct to a CSV file.
+pub fn save_mem_cost<M: Measure>(name: &str, lens: &[u64], densities: &[f64], uniform: bool) {
+    create_dir_all(format!("target/criterion/{}/", name)).unwrap();
+    let mut file =
+        std::fs::File::create(format!("target/criterion/{}/mem_cost.csv", name)).unwrap();
+    let mut rng = SmallRng::seed_from_u64(0);
+    for len in lens {
+        for density in densities {
+            let (_, _, bits) = create_bitvec(&mut rng, *len, *density, uniform);
+
+            let sel: M = M::new(bits, *len as usize);
+            let mem_cost = mem_cost(sel);
+            writeln!(file, "{},{},{}", len, density, mem_cost).unwrap();
+        }
+    }
 }
 
 /// Create a bit vector with a given length, density, and uniformity.

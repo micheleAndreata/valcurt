@@ -16,14 +16,14 @@ impl Measure for sux::rank_sel::Rank9 {
     }
 }
 
-impl<const UPPER_BLOCK_SIZE: usize> Measure for sux::rank_sel::Rank10<UPPER_BLOCK_SIZE> {
+impl<const LOG2_UPPER_BLOCK_SIZE: usize> Measure for sux::rank_sel::Rank10<LOG2_UPPER_BLOCK_SIZE> {
     fn new(data: Vec<usize>, len: usize) -> Self {
         let bitvec = unsafe { sux::bits::BitVec::from_raw_parts(data, len) };
         Self::new(bitvec)
     }
 
     fn len(&self) -> usize {
-        <sux::rank_sel::Rank10<UPPER_BLOCK_SIZE> as sux::traits::BitLength>::len(&self)
+        <sux::rank_sel::Rank10<LOG2_UPPER_BLOCK_SIZE> as sux::traits::BitLength>::len(&self)
     }
 
     fn mem_size(&self) -> usize {
@@ -123,8 +123,8 @@ impl Measure for sux::rank_sel::Rank9Sel {
     }
 }
 
-impl<const UPPER_BLOCK_SIZE: usize, const LOG2_ONES_PER_INVENTORY: usize> Measure
-    for sux::rank_sel::Rank10Sel<UPPER_BLOCK_SIZE, LOG2_ONES_PER_INVENTORY>
+impl<const LOG2_UPPER_BLOCK_SIZE: usize, const LOG2_ONES_PER_INVENTORY: usize> Measure
+    for sux::rank_sel::Rank10Sel<LOG2_UPPER_BLOCK_SIZE, LOG2_ONES_PER_INVENTORY>
 {
     fn new(data: Vec<usize>, len: usize) -> Self {
         let bitvec = unsafe { sux::bits::BitVec::from_raw_parts(data, len) };
@@ -132,7 +132,7 @@ impl<const UPPER_BLOCK_SIZE: usize, const LOG2_ONES_PER_INVENTORY: usize> Measur
     }
 
     fn len(&self) -> usize {
-        <sux::rank_sel::Rank10Sel<UPPER_BLOCK_SIZE, LOG2_ONES_PER_INVENTORY> as sux::traits::BitLength>::len(&self)
+        <sux::rank_sel::Rank10Sel<LOG2_UPPER_BLOCK_SIZE, LOG2_ONES_PER_INVENTORY> as sux::traits::BitLength>::len(&self)
     }
 
     fn mem_size(&self) -> usize {
