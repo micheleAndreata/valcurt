@@ -3,8 +3,6 @@ use criterion::Criterion;
 mod bench_rank;
 mod bench_select;
 
-// Select9 DOES NOT EXIST
-
 pub fn main() {
     let mut criterion = Criterion::default()
         .without_plots()
