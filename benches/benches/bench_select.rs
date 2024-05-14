@@ -3,23 +3,23 @@ use criterion::{black_box, measurement::Measurement, BenchmarkGroup, BenchmarkId
 use rand::{rngs::SmallRng, SeedableRng};
 use valcurt::utils::{create_bitvec, fastrange_non_uniform, save_mem_cost, BenchSelect};
 
-const LENS: [u64; 6] = [
+const LENS: [u64; 11] = [
     1u64 << 20,
     1 << 21,
     1 << 22,
     1 << 23,
     1 << 24,
     1 << 25,
-    // 1 << 26,
-    // 1 << 27,
-    // 1 << 28,
-    // 1 << 29,
-    // 1 << 30,
+    1 << 26,
+    1 << 27,
+    1 << 28,
+    1 << 29,
+    1 << 30,
 ];
 
 const DENSITIES: [f64; 3] = [0.25, 0.5, 0.75];
 
-const REPS: usize = 1;
+const REPS: usize = 5;
 
 fn bench_select<S: BenchSelect, M: Measurement>(
     bench_group: &mut BenchmarkGroup<'_, M>,

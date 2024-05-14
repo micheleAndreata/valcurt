@@ -6,10 +6,12 @@ impl BenchRank for sux::rank_sel::Rank9 {
     }
 }
 
-impl<const UPPER_BLOCK_SIZE: usize> BenchRank for sux::rank_sel::Rank10<UPPER_BLOCK_SIZE> {
+impl<const LOG2_LOWER_BLOCK_SIZE: usize> BenchRank
+    for sux::rank_sel::Rank10<LOG2_LOWER_BLOCK_SIZE>
+{
     fn bench_rank(&self, input: usize) -> usize {
         unsafe {
-            <sux::rank_sel::Rank10<UPPER_BLOCK_SIZE> as sux::traits::Rank>::rank_unchecked(
+            <sux::rank_sel::Rank10<LOG2_LOWER_BLOCK_SIZE> as sux::traits::Rank>::rank_unchecked(
                 &self, input,
             )
         }

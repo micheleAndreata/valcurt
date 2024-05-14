@@ -3,23 +3,23 @@ use rand::{rngs::SmallRng, Rng, SeedableRng};
 use sux::bits::BitVec;
 use valcurt::utils::{fastrange, save_mem_cost, BenchRank};
 
-const LENS: [u64; 6] = [
+const LENS: [u64; 11] = [
     1u64 << 20,
     1 << 21,
     1 << 22,
     1 << 23,
     1 << 24,
     1 << 25,
-    // 1 << 26,
-    // 1 << 27,
-    // 1 << 28,
-    // 1 << 29,
-    // 1 << 30,
+    1 << 26,
+    1 << 27,
+    1 << 28,
+    1 << 29,
+    1 << 30,
 ];
 
 const DENSITIES: [f64; 3] = [0.25, 0.5, 0.75];
 
-const REPS: usize = 1;
+const REPS: usize = 5;
 
 fn bench_rank<R: BenchRank, M: Measurement>(
     bench_group: &mut BenchmarkGroup<'_, M>,
@@ -57,13 +57,13 @@ pub fn bench_rank9(c: &mut Criterion) {
     group.finish();
 }
 
-pub fn bench_rank10<const LOG2_UPPER_BLOCK_SIZE: usize>(c: &mut Criterion) {
-    let name = format!("rank10_{}", LOG2_UPPER_BLOCK_SIZE);
+pub fn bench_rank10<const LOG2_LOWER_BLOCK_SIZE: usize>(c: &mut Criterion) {
+    let name = format!("rank10_{}", LOG2_LOWER_BLOCK_SIZE);
     let mut group = c.benchmark_group(&name);
-    bench_rank::<sux::rank_sel::Rank10<LOG2_UPPER_BLOCK_SIZE>, _>(
+    bench_rank::<sux::rank_sel::Rank10<LOG2_LOWER_BLOCK_SIZE>, _>(
         &mut group, &LENS, &DENSITIES, REPS,
     );
-    save_mem_cost::<sux::rank_sel::Rank10<LOG2_UPPER_BLOCK_SIZE>>(&name, &LENS, &[0.5], true);
+    save_mem_cost::<sux::rank_sel::Rank10<LOG2_LOWER_BLOCK_SIZE>>(&name, &LENS, &[0.5], true);
     group.finish();
 }
 

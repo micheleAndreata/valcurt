@@ -14,12 +14,12 @@ impl BenchSelect for sux::rank_sel::Rank9Sel {
     }
 }
 
-impl<const UPPER_BLOCK_SIZE: usize, const LOG2_ONES_PER_INVENTORY: usize> BenchSelect
-    for sux::rank_sel::Rank10Sel<UPPER_BLOCK_SIZE, LOG2_ONES_PER_INVENTORY>
+impl<const LOG2_LOWER_BLOCK_SIZE: usize, const LOG2_ONES_PER_INVENTORY: usize> BenchSelect
+    for sux::rank_sel::Rank10Sel<LOG2_LOWER_BLOCK_SIZE, LOG2_ONES_PER_INVENTORY>
 {
     fn bench_select(&self, input: usize) -> usize {
         unsafe {
-            <sux::rank_sel::Rank10Sel<UPPER_BLOCK_SIZE, LOG2_ONES_PER_INVENTORY> as sux::traits::Select>::select_unchecked(
+            <sux::rank_sel::Rank10Sel<LOG2_LOWER_BLOCK_SIZE, LOG2_ONES_PER_INVENTORY> as sux::traits::Select>::select_unchecked(
                 &self, input,
             )
         }

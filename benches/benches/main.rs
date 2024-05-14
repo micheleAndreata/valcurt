@@ -28,6 +28,7 @@ pub fn main() {
 
     if filter.is_empty() || filter.starts_with("-") {
         eprintln!("Usage: cargo bench --bench benches -- <filter>");
+        eprintln!("Example: cargo bench --bench benches -- rank10sel_8_10+rank10sel_9_10-nu");
         exit(1);
     }
 
@@ -63,16 +64,16 @@ pub fn main() {
             BenchedStruct::Rank9 => bench_rank::bench_rank9(&mut criterion),
             BenchedStruct::Rank10 => {
                 if params.len() != 2 {
-                    eprintln!("Usage: rank10_<log2_upper_block_size>");
+                    eprintln!("Usage: rank10_<log2_lower_block_size>");
                     exit(1);
                 }
-                let log2_upper_block_size = params[1].parse::<usize>().unwrap();
-                match log2_upper_block_size {
+                let log2_lower_block_size = params[1].parse::<usize>().unwrap();
+                match log2_lower_block_size {
                     8 => bench_rank::bench_rank10::<8>(&mut criterion),
                     9 => bench_rank::bench_rank10::<9>(&mut criterion),
                     10 => bench_rank::bench_rank10::<10>(&mut criterion),
                     _ => {
-                        eprintln!("Invalid log2_upper_block_size: {}", log2_upper_block_size);
+                        eprintln!("Invalid log2_lower_block_size: {}", log2_lower_block_size);
                         eprintln!("Valid values: 8, 9, 10");
                         exit(1);
                     }
@@ -89,48 +90,48 @@ pub fn main() {
             BenchedStruct::Rank9Sel => bench_select::bench_rank9sel(&mut criterion, uniform),
             BenchedStruct::Rank10Sel => {
                 if params.len() != 3 {
-                    eprintln!("Usage: rank10sel_<log2_upper_block_size>_<log2_ones_per_inventory>");
+                    eprintln!("Usage: rank10sel_<log2_lower_block_size>_<log2_ones_per_inventory>");
                     exit(1);
                 }
-                let log2_upper_block_size = params[1].parse::<usize>().unwrap();
+                let log2_lower_block_size = params[1].parse::<usize>().unwrap();
                 let log2_ones_per_inventory = params[2].parse::<usize>().unwrap();
                 match log2_ones_per_inventory {
-                    10 => match log2_upper_block_size {
+                    10 => match log2_lower_block_size {
                         8 => bench_select::bench_rank10sel::<8, 10>(&mut criterion, uniform),
                         9 => bench_select::bench_rank10sel::<9, 10>(&mut criterion, uniform),
                         10 => bench_select::bench_rank10sel::<10, 10>(&mut criterion, uniform),
                         _ => {
-                            eprintln!("Invalid log2_upper_block_size: {}", log2_upper_block_size);
+                            eprintln!("Invalid log2_lower_block_size: {}", log2_lower_block_size);
                             eprintln!("Valid values: 8, 9, 10");
                             exit(1);
                         }
                     },
-                    11 => match log2_upper_block_size {
+                    11 => match log2_lower_block_size {
                         8 => bench_select::bench_rank10sel::<8, 11>(&mut criterion, uniform),
                         9 => bench_select::bench_rank10sel::<9, 11>(&mut criterion, uniform),
                         10 => bench_select::bench_rank10sel::<10, 11>(&mut criterion, uniform),
                         _ => {
-                            eprintln!("Invalid log2_upper_block_size: {}", log2_upper_block_size);
+                            eprintln!("Invalid log2_lower_block_size: {}", log2_lower_block_size);
                             eprintln!("Valid values: 8, 9, 10");
                             exit(1);
                         }
                     },
-                    12 => match log2_upper_block_size {
+                    12 => match log2_lower_block_size {
                         8 => bench_select::bench_rank10sel::<8, 12>(&mut criterion, uniform),
                         9 => bench_select::bench_rank10sel::<9, 12>(&mut criterion, uniform),
                         10 => bench_select::bench_rank10sel::<10, 12>(&mut criterion, uniform),
                         _ => {
-                            eprintln!("Invalid log2_upper_block_size: {}", log2_upper_block_size);
+                            eprintln!("Invalid log2_lower_block_size: {}", log2_lower_block_size);
                             eprintln!("Valid values: 8, 9, 10");
                             exit(1);
                         }
                     },
-                    13 => match log2_upper_block_size {
+                    13 => match log2_lower_block_size {
                         8 => bench_select::bench_rank10sel::<8, 13>(&mut criterion, uniform),
                         9 => bench_select::bench_rank10sel::<9, 13>(&mut criterion, uniform),
                         10 => bench_select::bench_rank10sel::<10, 13>(&mut criterion, uniform),
                         _ => {
-                            eprintln!("Invalid log2_upper_block_size: {}", log2_upper_block_size);
+                            eprintln!("Invalid log2_lower_block_size: {}", log2_lower_block_size);
                             eprintln!("Valid values: 8, 9, 10");
                             exit(1);
                         }
