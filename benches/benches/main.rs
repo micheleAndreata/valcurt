@@ -50,7 +50,7 @@ pub fn main() {
             "rank12" => BenchedStruct::Rank12,
             "rank16" => BenchedStruct::Rank16,
             "poppy" => BenchedStruct::Poppy,
-            "cs_poppy" => BenchedStruct::CsPoppy,
+            "cspoppy" => BenchedStruct::CsPoppy,
             "simple" => BenchedStruct::SimpleSelect,
             "rank9sel" => BenchedStruct::Rank9Sel,
             "rank10sel" => BenchedStruct::Rank10Sel,
