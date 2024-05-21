@@ -43,7 +43,8 @@ def load_benches(base_path):
 
 
 def compare_benches(benches, compare_name, op_type):
-    fig, ax = plt.subplots(1, 3, constrained_layout=True,
+    num_densities = len(benches[0][0]["dense"].unique())
+    fig, ax = plt.subplots(1, num_densities, constrained_layout=True,
                            sharex=True, sharey=True, squeeze=False)
     fig.set_size_inches(10, 6)
     fig.text(0.5, -0.02, 'size [num of bits]', ha='center', va='center')
