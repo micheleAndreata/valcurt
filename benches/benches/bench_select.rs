@@ -3,18 +3,14 @@ use criterion::{black_box, measurement::Measurement, BenchmarkGroup, BenchmarkId
 use rand::{rngs::SmallRng, SeedableRng};
 use valcurt::utils::{create_bitvec, fastrange_non_uniform, save_mem_cost, BenchSelect};
 
-const LENS: [u64; 11] = [
-    1u64 << 20,
-    1 << 21,
-    1 << 22,
-    1 << 23,
-    1 << 24,
-    1 << 25,
-    1 << 26,
-    1 << 27,
-    1 << 28,
-    1 << 29,
-    1 << 30,
+const LENS: [u64; 7] = [
+    1_000_000,
+    3_000_000,
+    10_000_000,
+    30_000_000,
+    100_000_000,
+    300_000_000,
+    1_000_000_000,
 ];
 
 const DENSITIES: [f64; 3] = [0.25, 0.5, 0.75];

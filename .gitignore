@@ -4,3 +4,5 @@ Cargo.lock
 lcov.info
 .DS_Store
 plots
+perf.data
+perf.data.old
