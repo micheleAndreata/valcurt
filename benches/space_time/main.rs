@@ -13,7 +13,10 @@ enum BenchedStruct {
     Rank16,
     Poppy,
     CsPoppy,
-    SimpleSelect,
+    SimpleSelect0,
+    SimpleSelect1,
+    SimpleSelect2,
+    SimpleSelect3,
     Rank9Sel,
     Rank10Sel,
 }
@@ -51,7 +54,10 @@ pub fn main() {
             "rank16" => BenchedStruct::Rank16,
             "poppy" => BenchedStruct::Poppy,
             "cspoppy" => BenchedStruct::CsPoppy,
-            "simple" => BenchedStruct::SimpleSelect,
+            "simple0" => BenchedStruct::SimpleSelect0,
+            "simple1" => BenchedStruct::SimpleSelect1,
+            "simple2" => BenchedStruct::SimpleSelect2,
+            "simple3" => BenchedStruct::SimpleSelect3,
             "rank9sel" => BenchedStruct::Rank9Sel,
             "rank10sel" => BenchedStruct::Rank10Sel,
             _ => {
@@ -84,8 +90,17 @@ pub fn main() {
             BenchedStruct::Rank16 => bench_rank::bench_rank16(&mut criterion),
             BenchedStruct::Poppy => bench_rank::bench_poppy(&mut criterion),
             BenchedStruct::CsPoppy => bench_select::bench_cs_poppy(&mut criterion, uniform),
-            BenchedStruct::SimpleSelect => {
-                bench_select::bench_simple_select(&mut criterion, uniform)
+            BenchedStruct::SimpleSelect0 => {
+                bench_select::bench_simple_select0(&mut criterion, uniform)
+            }
+            BenchedStruct::SimpleSelect1 => {
+                bench_select::bench_simple_select1(&mut criterion, uniform)
+            }
+            BenchedStruct::SimpleSelect2 => {
+                bench_select::bench_simple_select2(&mut criterion, uniform)
+            }
+            BenchedStruct::SimpleSelect3 => {
+                bench_select::bench_simple_select3(&mut criterion, uniform)
             }
             BenchedStruct::Rank9Sel => bench_select::bench_rank9sel(&mut criterion, uniform),
             BenchedStruct::Rank10Sel => {

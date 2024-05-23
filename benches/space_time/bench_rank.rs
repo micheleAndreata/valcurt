@@ -1,49 +1,5 @@
-use criterion::{black_box, measurement::Measurement, BenchmarkGroup, BenchmarkId, Criterion};
-use rand::{rngs::SmallRng, Rng, SeedableRng};
-use sux::bits::BitVec;
-use valcurt::utils::{fastrange, save_mem_cost, BenchRank};
-
-const LENS: [u64; 7] = [
-    1_000_000,
-    3_000_000,
-    10_000_000,
-    30_000_000,
-    100_000_000,
-    300_000_000,
-    1_000_000_000,
-];
-
-const DENSITIES: [f64; 3] = [0.25, 0.5, 0.75];
-
-const REPS: usize = 5;
-
-fn bench_rank<R: BenchRank, M: Measurement>(
-    bench_group: &mut BenchmarkGroup<'_, M>,
-    lens: &[u64],
-    densities: &[f64],
-    reps: usize,
-) {
-    let mut rng = SmallRng::seed_from_u64(0);
-    for len in lens.iter().copied() {
-        for density in densities.iter().copied() {
-            // possible repetitions
-            for i in 0..reps {
-                let bits: BitVec = (0..len).map(|_| rng.gen_bool(density)).collect::<BitVec>();
-                let (data, len) = bits.into_raw_parts();
-                let rank: R = R::new(data, len);
-                bench_group.bench_function(
-                    BenchmarkId::from_parameter(format!("{}_{}_{}", len, density, i)),
-                    |b| {
-                        b.iter(|| {
-                            let p = fastrange(&mut rng, len as u64) as usize;
-                            black_box(rank.bench_rank(p));
-                        })
-                    },
-                );
-            }
-        }
-    }
-}
+use criterion::Criterion;
+use valcurt::utils::{bench_rank, save_mem_cost, DENSITIES, LENS, REPS};
 
 pub fn bench_rank9(c: &mut Criterion) {
     let name = "rank9";

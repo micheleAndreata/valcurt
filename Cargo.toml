@@ -15,10 +15,13 @@ succinct = "0.5.2"
 bitm = "0.4.1"
 sucds = "0.8.1"
 sux = {git = "https://github.com/vigna/sux-rs", branch="broad-builder"}
-
-[dev-dependencies]
 criterion = "0.5.1"
 
+
 [[bench]]
-name = "benches"
+name = "space_time"
+harness = false
+
+[[bench]]
+name = "time"
 harness = false

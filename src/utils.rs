@@ -1,3 +1,5 @@
+use criterion::measurement::Measurement;
+use criterion::{black_box, BenchmarkGroup, BenchmarkId};
 use rand::{rngs::SmallRng, Rng, SeedableRng};
 use std::io::Write;
 use std::{any::type_name, fs::create_dir_all};
@@ -119,4 +121,79 @@ pub fn create_bitvec(
         num_ones_second_half,
         bits.into_raw_parts().0,
     )
+}
+
+pub const LENS: [u64; 7] = [
+    1_000_000,
+    3_000_000,
+    10_000_000,
+    30_000_000,
+    100_000_000,
+    300_000_000,
+    1_000_000_000,
+];
+
+pub const DENSITIES: [f64; 3] = [0.2, 0.5, 0.8];
+
+pub const REPS: usize = 5;
+
+pub fn bench_rank<R: BenchRank, M: Measurement>(
+    bench_group: &mut BenchmarkGroup<'_, M>,
+    lens: &[u64],
+    densities: &[f64],
+    reps: usize,
+) {
+    let mut rng = SmallRng::seed_from_u64(0);
+    for len in lens.iter().copied() {
+        for density in densities.iter().copied() {
+            // possible repetitions
+            for i in 0..reps {
+                let bits: BitVec = (0..len).map(|_| rng.gen_bool(density)).collect::<BitVec>();
+                let (data, len) = bits.into_raw_parts();
+                let rank: R = R::new(data, len);
+                bench_group.bench_function(
+                    BenchmarkId::from_parameter(format!("{}_{}_{}", len, density, i)),
+                    |b| {
+                        b.iter(|| {
+                            let p = fastrange(&mut rng, len as u64) as usize;
+                            black_box(rank.bench_rank(p));
+                        })
+                    },
+                );
+            }
+        }
+    }
+}
+
+pub fn bench_select<S: BenchSelect, M: Measurement>(
+    bench_group: &mut BenchmarkGroup<'_, M>,
+    lens: &[u64],
+    densities: &[f64],
+    reps: usize,
+    uniform: bool,
+) {
+    let mut rng = SmallRng::seed_from_u64(0);
+    for len in lens {
+        for density in densities {
+            // possible repetitions
+            for i in 0..reps {
+                let (num_ones_first_half, num_ones_second_half, bits) =
+                    create_bitvec(&mut rng, *len, *density, uniform);
+
+                let sel: S = S::new(bits, *len as usize);
+                let mut routine = || {
+                    let r = fastrange_non_uniform(
+                        &mut rng,
+                        num_ones_first_half as u64,
+                        num_ones_second_half as u64,
+                    ) as usize;
+                    black_box(sel.bench_select(r));
+                };
+                bench_group.bench_function(
+                    BenchmarkId::from_parameter(format!("{}_{}_{}", *len, *density, i)),
+                    |b| b.iter(|| routine()),
+                );
+            }
+        }
+    }
 }

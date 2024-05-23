@@ -1,9 +1,47 @@
 use crate::utils::BenchSelect;
 
-impl BenchSelect for sux::rank_sel::SimpleSelect {
+use super::measure_impls::{SimpleSelect0, SimpleSelect1, SimpleSelect2, SimpleSelect3};
+
+impl BenchSelect for SimpleSelect0 {
     fn bench_select(&self, input: usize) -> usize {
         unsafe {
-            <sux::rank_sel::SimpleSelect as sux::traits::Select>::select_unchecked(&self, input)
+            <sux::rank_sel::SimpleSelect as sux::traits::Select>::select_unchecked(
+                &self.select,
+                input,
+            )
+        }
+    }
+}
+
+impl BenchSelect for SimpleSelect1 {
+    fn bench_select(&self, input: usize) -> usize {
+        unsafe {
+            <sux::rank_sel::SimpleSelect as sux::traits::Select>::select_unchecked(
+                &self.select,
+                input,
+            )
+        }
+    }
+}
+
+impl BenchSelect for SimpleSelect2 {
+    fn bench_select(&self, input: usize) -> usize {
+        unsafe {
+            <sux::rank_sel::SimpleSelect as sux::traits::Select>::select_unchecked(
+                &self.select,
+                input,
+            )
+        }
+    }
+}
+
+impl BenchSelect for SimpleSelect3 {
+    fn bench_select(&self, input: usize) -> usize {
+        unsafe {
+            <sux::rank_sel::SimpleSelect as sux::traits::Select>::select_unchecked(
+                &self.select,
+                input,
+            )
         }
     }
 }
@@ -27,7 +65,11 @@ impl<const LOG2_LOWER_BLOCK_SIZE: usize, const LOG2_ONES_PER_INVENTORY: usize> B
 }
 
 impl BenchSelect
-    for bitm::RankSelect101111<bitm::CombinedSampling, bitm::CombinedSampling, Box<[u64]>>
+    for bitm::RankSelect101111<
+        bitm::CombinedSampling<bitm::ConstCombinedSamplingDensity>,
+        bitm::CombinedSampling<bitm::ConstCombinedSamplingDensity>,
+        Box<[u64]>,
+    >
 {
     fn bench_select(&self, input: usize) -> usize {
         unsafe { <bitm::RankSelect101111<_, _, _> as bitm::Select>::select_unchecked(&self, input) }
