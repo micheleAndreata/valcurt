@@ -1,4 +1,5 @@
 use bitm::CombinedSampling;
+use std::env;
 use valcurt::utils::{save_mem_cost, DENSITIES, LENS};
 use valcurt::{SimpleSelect0, SimpleSelect1, SimpleSelect2, SimpleSelect3};
 
@@ -69,9 +70,12 @@ pub fn bench_cs_poppy(uniform: bool) {
 }
 
 fn main() {
-    bench_simple_select0(true);
-    bench_simple_select1(true);
-    bench_simple_select2(true);
-    bench_simple_select3(true);
-    bench_cs_poppy(true);
+    let args: Vec<String> = env::args().collect();
+    let uniform = !args.contains(&String::from("-nu"));
+
+    bench_simple_select0(uniform);
+    bench_simple_select1(uniform);
+    bench_simple_select2(uniform);
+    bench_simple_select3(uniform);
+    bench_cs_poppy(uniform);
 }

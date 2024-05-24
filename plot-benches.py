@@ -119,23 +119,17 @@ def draw_pareto_front(benches, compare_name, op_type, density=0.5):
                 plt.scatter(p[0], p[1], color=colors[i],
                             marker=markers[j], s=20)
     ax.grid(True)
-    artists1 = []
-    artists2 = []
+    artists = []
 
     for i, l in enumerate(lens):
-        artists1.append(mpatches.Patch(
+        artists.append(mpatches.Patch(
             color=colors[i], label="size={0:.{1}e}".format(l, 1)))
 
     for i, bench in enumerate(benches):
-        artists2.append(
+        artists.append(
             Line2D([0], [0], color='black', marker=markers[i], markersize=5, label=bench[1]))
 
-    legend1 = plt.legend(handles=artists1, loc='upper center', bbox_to_anchor=(
-        0.5, -0.09), fancybox=True, shadow=False, ncol=5)
-    legend2 = plt.legend(handles=artists2, loc='upper center', bbox_to_anchor=(
-        0.5, -0.20), fancybox=True, shadow=False, ncol=5)
-    fig.add_artist(legend1)
-    fig.add_artist(legend2)
+    ax.legend(handles=artists, loc='best', fancybox=True, shadow=False)
 
     plt.draw_all()
     plt.savefig("./plots/{}.svg".format(compare_name),
