@@ -46,30 +46,6 @@ pub fn type_of<T>(_: T) -> &'static str {
     type_name::<T>()
 }
 
-/// Return the memory cost of the struct in percentage.
-/// Depends on the length of underlying bit vector and the total memory size of the struct.
-pub fn mem_cost(benched_struct: impl Measure) -> f64 {
-    (((benched_struct.mem_size() * 8 - benched_struct.len()) * 100) as f64)
-        / (benched_struct.len() as f64)
-}
-
-/// Save the memory cost of a struct to a CSV file.
-pub fn save_mem_cost<M: Measure>(name: &str, lens: &[u64], densities: &[f64], uniform: bool) {
-    create_dir_all(format!("target/criterion/{}/", name)).unwrap();
-    let mut file =
-        std::fs::File::create(format!("target/criterion/{}/mem_cost.csv", name)).unwrap();
-    let mut rng = SmallRng::seed_from_u64(0);
-    for len in lens {
-        for density in densities {
-            let (_, _, bits) = create_bitvec(&mut rng, *len, *density, uniform);
-
-            let sel: M = M::new(bits, *len as usize);
-            let mem_cost = mem_cost(sel);
-            writeln!(file, "{},{},{}", len, density, mem_cost).unwrap();
-        }
-    }
-}
-
 /// Create a bit vector with a given length, density, and uniformity.
 /// The density is the probability of a bit being set to 1.
 /// The uniformity is a boolean that determines if the density is uniform or not.
@@ -136,6 +112,30 @@ pub const LENS: [u64; 7] = [
 pub const DENSITIES: [f64; 3] = [0.2, 0.5, 0.8];
 
 pub const REPS: usize = 5;
+
+/// Return the memory cost of the struct in percentage.
+/// Depends on the length of underlying bit vector and the total memory size of the struct.
+pub fn mem_cost(benched_struct: impl Measure) -> f64 {
+    (((benched_struct.mem_size() * 8 - benched_struct.len()) * 100) as f64)
+        / (benched_struct.len() as f64)
+}
+
+/// Save the memory cost of a struct to a CSV file.
+pub fn save_mem_cost<M: Measure>(name: &str, lens: &[u64], densities: &[f64], uniform: bool) {
+    create_dir_all(format!("target/criterion/{}/", name)).unwrap();
+    let mut file =
+        std::fs::File::create(format!("target/criterion/{}/mem_cost.csv", name)).unwrap();
+    let mut rng = SmallRng::seed_from_u64(0);
+    for len in lens {
+        for density in densities {
+            let (_, _, bits) = create_bitvec(&mut rng, *len, *density, uniform);
+
+            let sel: M = M::new(bits, *len as usize);
+            let mem_cost = mem_cost(sel);
+            writeln!(file, "{},{},{}", len, density, mem_cost).unwrap();
+        }
+    }
+}
 
 pub fn bench_rank<R: BenchRank, M: Measurement>(
     bench_group: &mut BenchmarkGroup<'_, M>,

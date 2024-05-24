@@ -6,13 +6,14 @@ import json
 import math
 import pandas as pd
 import numpy as np
+import argparse
 
 colors = ['b', 'g', 'r', 'c', 'm', 'purple',
           'gold', 'teal', 'orange', 'brown', 'pink']
 markers = np.array(["v", "o", "+", "*", "^", "s", "D", "x"])
 
 
-def load_benches(base_path):
+def load_benches(base_path, load_mem_cost=False):
     benches_list = []
 
     for dir in sorted([d for d in os.listdir(base_path) if os.path.isdir(base_path + d)]):
@@ -33,10 +34,11 @@ def load_benches(base_path):
     benches_df = benches_df.groupby(
         ["size", "dense"], as_index=False)["time"].mean()
 
-    mem_cost_df = pd.read_csv(
-        base_path + "mem_cost.csv", header=None, names=["size", "dense", "mem_cost"])
-    benches_df = pd.merge(benches_df, mem_cost_df,
-                          how="left", on=["size", "dense"])
+    if load_mem_cost:
+        mem_cost_df = pd.read_csv(
+            base_path + "mem_cost.csv", header=None, names=["size", "dense", "mem_cost"])
+        benches_df = pd.merge(benches_df, mem_cost_df,
+                              how="left", on=["size", "dense"])
 
     benches_df = benches_df.sort_values(by="size", ignore_index=True)
     return benches_df
@@ -90,18 +92,18 @@ def is_pareto_efficient(costs):
     return is_efficient
 
 
-def draw_pareto_front(benches, compare_name):
+def draw_pareto_front(benches, compare_name, op_type, density=0.5):
     fig, ax = plt.subplots(1, 1, constrained_layout=True)
     fig.set_size_inches(10, 6)
     ax.set_ylabel("memory cost [%]")
-    ax.set_xlabel("time [ns]")
+    ax.set_xlabel(f"time [ns/{op_type}]")
 
     bench_per_len = []
     lens = benches[0][0]["size"].unique()
     for l in lens:
         bench_per_len.append([])
         for bench, _ in benches:
-            b = bench[bench["dense"] == 0.5]
+            b = bench[bench["dense"] == density]
             b = b[b["size"] == l]
             bench_per_len[-1].append(np.ndarray.flatten(
                 b[["time", "mem_cost"]].values))
@@ -117,18 +119,23 @@ def draw_pareto_front(benches, compare_name):
                 plt.scatter(p[0], p[1], color=colors[i],
                             marker=markers[j], s=20)
     ax.grid(True)
-    handles = []
+    artists1 = []
+    artists2 = []
 
     for i, l in enumerate(lens):
-        handles.append(mpatches.Patch(
-            color=colors[i], label=f"size=2^{math.floor(math.log2(l))}"))
+        artists1.append(mpatches.Patch(
+            color=colors[i], label="size={0:.{1}e}".format(l, 1)))
 
     for i, bench in enumerate(benches):
-        handles.append(
+        artists2.append(
             Line2D([0], [0], color='black', marker=markers[i], markersize=5, label=bench[1]))
 
-    fig.legend(handles=handles, loc='upper center', bbox_to_anchor=(
-        0.5, -0.04), fancybox=True, shadow=True, ncol=5)
+    legend1 = plt.legend(handles=artists1, loc='upper center', bbox_to_anchor=(
+        0.5, -0.09), fancybox=True, shadow=False, ncol=5)
+    legend2 = plt.legend(handles=artists2, loc='upper center', bbox_to_anchor=(
+        0.5, -0.20), fancybox=True, shadow=False, ncol=5)
+    fig.add_artist(legend1)
+    fig.add_artist(legend2)
 
     plt.draw_all()
     plt.savefig("./plots/{}.svg".format(compare_name),
@@ -137,10 +144,22 @@ def draw_pareto_front(benches, compare_name):
 
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Plot benches")
+    parser.add_argument("op_type", choices=[
+                        "select", "rank"], help="Operation type")
+    parser.add_argument("--pareto",
+                        action="store_true", help="Load memory cost")
+    args = parser.parse_args()
+
     benches = []
     for file in os.listdir("target/criterion/"):
         if os.path.isdir(f"target/criterion/{file}/"):
             benches.append(
-                (load_benches(f"target/criterion/{file}/"), file))
-    compare_benches(benches, "benches", "select")
-    draw_pareto_front(benches, "pareto")
+                (load_benches(f"target/criterion/{file}/", load_mem_cost=args.pareto), file))
+
+    compare_benches(benches, "benches", args.op_type)
+
+    if args.pareto:
+        draw_pareto_front(benches, "pareto_0.2", args.op_type, density=0.2)
+        draw_pareto_front(benches, "pareto_0.5", args.op_type, density=0.5)
+        draw_pareto_front(benches, "pareto_0.8", args.op_type, density=0.8)
