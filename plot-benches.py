@@ -13,7 +13,13 @@ colors = ['b', 'g', 'r', 'c', 'm', 'purple',
 markers = np.array(["v", "o", "+", "*", "^", "s", "D", "x"])
 
 
-def load_benches(base_path, load_mem_cost=False):
+def load_csv_benches(path):
+    df = pd.read_csv(path, header=None, names=[
+                     "size", "dense", "time"])
+    return df
+
+
+def load_criterion_benches(base_path, load_mem_cost=False):
     benches_list = []
 
     for dir in sorted([d for d in os.listdir(base_path) if os.path.isdir(base_path + d)]):
@@ -142,18 +148,26 @@ if __name__ == "__main__":
     parser.add_argument("op_type", choices=[
                         "select", "rank"], help="Operation type")
     parser.add_argument("--pareto",
-                        action="store_true", help="Load memory cost")
+                        action="store_true", help="Draw pareto front")
+    parser.add_argument("data_type", choices=[
+                        "criterion", "csv"], help="Data type")
     args = parser.parse_args()
 
     benches = []
-    for file in os.listdir("target/criterion/"):
-        if os.path.isdir(f"target/criterion/{file}/"):
-            benches.append(
-                (load_benches(f"target/criterion/{file}/", load_mem_cost=args.pareto), file))
+    if args.data_type == "criterion":
+        for file in sorted(os.listdir("target/criterion/")):
+            if os.path.isdir(f"target/criterion/{file}/"):
+                benches.append(
+                    (load_criterion_benches(f"target/criterion/{file}/", load_mem_cost=args.pareto), file))
+    else:
+        for file in sorted(os.listdir("./target/criterion")):
+            if file.endswith(".csv"):
+                benches.append(
+                    (load_csv_benches(f"./target/criterion/{file}"), file[:-4]))
 
     compare_benches(benches, "benches", args.op_type)
 
     if args.pareto:
-        draw_pareto_front(benches, "pareto_0.2", args.op_type, density=0.2)
-        draw_pareto_front(benches, "pareto_0.5", args.op_type, density=0.5)
-        draw_pareto_front(benches, "pareto_0.8", args.op_type, density=0.8)
+        densities = benches[0][0]["dense"].unique()
+        for d in densities:
+            draw_pareto_front(benches, f"pareto_{d}", args.op_type, d)
