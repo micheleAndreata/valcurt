@@ -47,6 +47,6 @@ pub fn bench_poppy(c: &mut Criterion) {
     let name = "poppy";
     let mut group = c.benchmark_group(name);
     bench_rank::<bitm::ArrayWithRank101111, _>(&mut group, &LENS, &DENSITIES, REPS);
-    save_mem_cost::<bitm::ArrayWithRank101111>(name, &LENS, &[0.5], true);
+    save_mem_cost::<bitm::ArrayWithRank101111>(name, &LENS, &DENSITIES, true);
     group.finish();
 }
